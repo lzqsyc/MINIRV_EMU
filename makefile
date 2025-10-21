@@ -28,9 +28,10 @@ TARGET = $(BIN_DIR)/Minirv_emu
 
 all: $(TARGET)
 $(TARGET): $(OBJS)
+	@mkdir -p $(BIN_DIR)
 	$(CC) $(CHECK) -o $@ $^
-
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c $(HEAD_FILE)
+	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CHECK) $(INCLUDES) -c $< -o $@
 
 $(BUILD_DIR)/%.o: $(TEST_DIR)/%.c $(HEAD_FILE)
