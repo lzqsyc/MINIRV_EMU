@@ -21,6 +21,3 @@ Minirv_emu
 .DS_Store
 Thumbs.db
 
-# 可能的大型数据文件（根据实际情况调整）
-*.hex
-*.txt

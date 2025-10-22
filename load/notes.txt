@@ -1,0 +1,85 @@
+1、静态数据返回类型：只属于当前.c文件下可用，无法被其他.c文件访问。
+2、文件打开和关闭函数：
+    fopen,打开文件；fclose，关闭文件
+    模式参数：
+        r:
+        w:
+        a:
+        rb:
+        wb:
+        r+:
+    正常读完文件之后，必须关闭文件，防止系统资源泄露
+3、使用man查看步骤
+    1、man的分区组织
+        1：用户命令
+        2：系统调用（内核接口，如 open(2)）
+        3：C 库函数（如 strchr(3)、printf(3)
+        7：杂项/概念（协议、标准、宏观说明）
+        绝大多数 C 函数用 3 区；内核调用用 2 区
+    2、先查分区/名字是否存在
+        whatis <名字>   / man -f <名字>
+    3、根据分区打开对应手册页
+        man <分区> <名字>
+    4、在man页面内阅读与导航
+        space,下翻，b上翻
+        SYNOPSIS：需要的头文件（通常是 #include <string.h>），函数原型。
+        DESCRIPTION：行为语义、参数含义、边界条件（比如未找到返回 NULL）。
+        RETURN VALUE：成功/失败返回值。
+        ERRORS：可能的 errno（一些库函数不设 errno）。
+        ATTRIBUTES：线程安全性（MT-Safe 等）。
+        CONFORMING TO：是否符合 C/POSIX 标准以及差异。
+        NOTES / BUGS：实现细节，特性宏（如 glibc 的 feature test macros）。
+        EXAMPLES：示例代码。
+        SEE ALSO：相近函数（如 strrchr(3)、memchr(3)）。
+
+
+4、加载程序的总体设计：
+    [外层交互壳]
+    └─ hex_load(cpu)
+        ├─ 读取文件名、清输入缓冲
+        ├─ find_hex_file()    // 在若干目录中定位真实路径
+        ├─ load_hex_file()    // 真正把文本解析为指令并写入内存
+        └─ 选择调试/运行：debug_mode() / run_mode() / 返回
+
+    [内层加载引擎]
+    └─ load_hex_file(cpu, path)
+        ├─ FILE* 打开文件
+        ├─ address_used[] 标记数组(检测覆盖)
+        ├─ 逐行循环：
+        │   ├─ clean_line()                 // 去换行/注释/空白
+        │   ├─ parse_objdump_line()  或     // “字地址 + 字节流”
+        │   │   parse_simple_hex_line()     // “一行 = 一个32位指令”
+        │   ├─ 地址变换/合法性检查(×4、对齐、越界、覆盖)
+        │   └─ mem_write(cpu, addr, inst)   // 写入模拟内存
+        ├─ 关闭文件, 释放 address_used
+        └─ 打印统计(格式类型/总指令数/告警)
+
+5、控制流：从输入文件名到进行执行
+    用户输入文件名 ──> hex_load()
+       ├─ find_hex_file()  // 尝试 "./", "load/", "../load/", "test/", ...
+       ├─ load_hex_file()  // 成功则：
+       │   ├─ fopen() 打开文本
+       │   ├─ for (line in file):
+       │   │   ├─ clean_line(line)
+       │   │   ├─ if parse_objdump_line(line):   // 多指令/行
+       │   │   │     addr = word_addr * 4
+       │   │   │     for each inst: 检查→mem_write()
+       │   │   └─ else if parse_simple_hex_line(line): // 一指令/行
+       │   │         addr = 当前写指针(或行内显式地址)
+       │   │         检查→mem_write(); 写指针+=4
+       │   └─ fclose() + 统计/告警输出
+       └─ 用户选择：debug_mode() 或 run_mode() 或返回
+
+6、执行逻辑
+    hex_load()
+      ├─ find_hex_file(filename → found_path)
+      └─ load_hex_file(cpu, found_path)
+            ├─ fopen()
+            ├─ while (fgets line):
+            │    clean_line(line)
+            │    if parse_objdump_line(line → addr, insts[], count):
+            │        addr *= 4; for i in [0..count]: check+write(addr+4*i, insts[i])
+            │    else if parse_simple_hex_line(line → inst):
+            │        check+write(curr_addr, inst); curr_addr += 4
+            │    else: warn("无法识别的行")
+            └─ fclose() + stats
