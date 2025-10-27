@@ -4,7 +4,7 @@ int hex_search(const char *filename, char *filepath,size_t path_size){
     const char *possible_paths[]={
         filename,
         "load/%s",
-        "hex/%s",
+        "other/%s",
         "../hex/%s",
         "test/%s",
         "../test/%s",
