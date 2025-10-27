@@ -18,13 +18,12 @@ int main(){
             continue;   // 重复循环语句，回到循环开始并非终止
         }
         while (getchar()!='\n');
+        cpu.pc = LOAD_START;
         switch (mode){
             case 1:
-                cpu.pc = TEST_START;
                 inst_test(&cpu);
                 break;
             case 2:
-                cpu.pc = LOAD_START;
                 cpu_init(&cpu);
                 hex_load(&cpu);
                 cpu_free(&cpu);

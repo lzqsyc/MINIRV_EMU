@@ -7,9 +7,8 @@
 #include<stdlib.h>
 #include <ctype.h>
 
-#define MEM_SIZE 512*1024
+#define MEM_SIZE (512*1024)
 #define LOAD_START 0x00000000
-#define TEST_START 0x00001000
 // 操作码
 #define OPCODE_LOAD     0x03                // lw lbu
 #define OPCODE_STORE    0x23                // sw sb
@@ -86,12 +85,24 @@ void add(CPU_state *cpu,DecodeInst inst);
 void lui(CPU_state *cpu,DecodeInst inst);
 void jalr(CPU_state *cpu,DecodeInst inst);
 void ebreak(CPU_state *cpu,DecodeInst inst);
-//.hex文件加载
-int file_exists(const char *filename);                                         
+//.hex文件加载         
+/*                            
 int find_hex_file(const char *filename, char *found_path, size_t path_size) ;     
 int parse_objdump_line(const char *line, uint32_t *address, uint32_t instructions[8], int *count);
 int parse_simple_hex_line(const char *line, uint32_t *instruction);
 void clean_line(char *line) ;
 int load_hex_file(CPU_state *cpu, const char *filename);
 void hex_load(CPU_state *cpu);
+// hex_load-2
+*/ 
+void hex_load(CPU_state *cpu);
+int hex_search(const char *filename, char *filepath,size_t path_size);
+int hex_format_check(const char *filepath);
+void clean_format(char *line);
+int objdump_check(const char *line, uint32_t *addr, uint32_t instructions[8],int *count);
+void load_objdump(const char *filepath,CPU_state *cpu,int *line_count,int *inst_count,int *error_count);
+int simple_check(const char *line,uint32_t *instructions);
+void load_simple(const char *line, CPU_state *cpu,int *line_count,int *inst_count,int *error_count);
+int hex_execute(CPU_state *cpu, char *filename);
+
 #endif

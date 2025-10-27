@@ -109,3 +109,4 @@ void verify_test_results(CPU_state *cpu) {
         printf("⚠️  部分测试失败，需要调试\n");
     }
 }
+
