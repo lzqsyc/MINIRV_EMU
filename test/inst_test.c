@@ -69,10 +69,10 @@ int choice = 0;
     if (scanf("%d",&choice) !=1)
     {
         printf("输入错误！");
-        while (getchar() !='\n');
+        clear_input_buffer();
         continue;   // 重复循环语句，回到循环开始并非终止
     }
-    while (getchar()!='\n');
+    clear_input_buffer();
     switch (choice)
     {
         case 1:

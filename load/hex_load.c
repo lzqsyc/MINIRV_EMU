@@ -1,4 +1,10 @@
 #include "../head/head.h"
+
+void clear_input_buffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c !=EOF);
+}
+
 void hex_load(CPU_state *cpu){
     char filename [256]={0};
     printf("\n ===Hex文件加载模式 ===\n");
@@ -13,8 +19,8 @@ void hex_load(CPU_state *cpu){
         printf("输入指令错误！\n");
         return;
     }
-    int c = 0;
-    while ((c = getchar()) != '\n' && c != EOF);    //赋值低于比较运算法
+    // getchar 从标准输入读取字符，清除包括'\n'/'EOF'之前的所有缓冲区字符
+    clear_input_buffer (); 
 
     if (strcmp(filename,"q") ==0 || strcmp(filename,"Q") == 0)
     {
@@ -38,9 +44,9 @@ void hex_load(CPU_state *cpu){
             if (scanf("%d",&execute_mode) !=1)
             {
                 printf("输入错误，请重新输入选择！\n");
-                 while ((c = getchar()) != '\n' && c != EOF);
+                void clear_input_buffer();
             }
-             while ((c = getchar()) != '\n' && c != EOF);
+             void clear_input_buffer();
             switch (execute_mode)
             {
             case 1:
@@ -66,11 +72,11 @@ void hex_load(CPU_state *cpu){
         printf("\n是否重新加载文件(yes/任意字符退出)?\n");
         if (scanf("%s",retry) == 1 && strcmp(retry,"yes") == 0)
         {
-            while ((c = getchar()) != '\n' && c != EOF);
+            void clear_input_buffer();
             hex_load(cpu);                                            // 递归调用加载程序
         }
         else{
-            while ((c = getchar()) != '\n' && c != EOF);
+            void clear_input_buffer();
             printf("返回主菜单！\n");
         }
         

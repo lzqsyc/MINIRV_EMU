@@ -95,6 +95,7 @@ int load_hex_file(CPU_state *cpu, const char *filename);
 void hex_load(CPU_state *cpu);
 // hex_load-2
 */ 
+void clear_input_buffer();
 void hex_load(CPU_state *cpu);
 int hex_search(const char *filename, char *filepath,size_t path_size);
 int hex_format_check(const char *filepath);
