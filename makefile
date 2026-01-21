@@ -18,10 +18,15 @@ TEST_FILE = $(wildcard $(TEST_DIR)/*.c)
 SRC = $(SRC_FILE) $(LOAD_FILE) $(TEST_FILE)
 
 
-# 对象文件生成
+# 对象文件替换
 SRC_OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC_FILE))
 TEST_OBJS = $(patsubst $(TEST_DIR)/%.c,$(BUILD_DIR)/%.o,$(TEST_FILE)) 
 LOAD_OBJS = $(patsubst $(LOAD_DIR)/%.c,$(BUILD_DIR)/%.o,$(LOAD_FILE)) 
+
+# 核心语法： $(变量名:匹配模式=替换模式)
+# SRC_OBJS  = $(SRC_FILE:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+# TEST_OBJS = $(TEST_FILE:$(TEST_DIR)/%.c=$(BUILD_DIR)/%.o)
+# LOAD_OBJS = $(LOAD_FILE:$(LOAD_DIR)/%.c=$(BUILD_DIR)/%.o)
 
 OBJS = $(SRC_OBJS) $(LOAD_OBJS) $(TEST_OBJS)
 TARGET = $(BIN_DIR)/Minirv_emu
@@ -45,3 +50,4 @@ clean:
 run: $(TARGET)
 	./$(TARGET)
 .PHONY:all clean run
+

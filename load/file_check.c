@@ -1,5 +1,5 @@
 #include "../head/head.h"
-
+//=============================== 预设路径中寻找文件名，找到文件返回0，失败返回非0 ======================
 int hex_search(const char *filename, char *filepath,size_t path_size){
     const char *possible_paths[]={
         filename,
@@ -10,14 +10,18 @@ int hex_search(const char *filename, char *filepath,size_t path_size){
         "../test/%s",
         NULL
     };
+// %s 格式说明符=占位符，利用snprintf来实现字符串替换（格式化拼接）
+// snprintf 按指定格式将数据打印到字符串缓冲区地址去
     printf("\n正在搜索文件: %s\n", filename);
     printf("搜索路径:\n");
     for ( int i = 0; possible_paths[i]!= NULL; i++)
     {
-        if (strchr(possible_paths[i],'%') != NULL)
-        {
+        // 如果路径模板里包含 '%'，说明它是一个需要拼接的模板
+        if (strchr(possible_paths[i],'%') != NULL){
+        // 将fimename数据按possible_path[i]填入占位符后写入filepath目标路径，最多写入path_size大小数据
             snprintf(filepath,path_size,possible_paths[i],filename);
         }else{
+         // 如果没有 '%'（比如数组的第一个元素 filename 本身），说明它是纯文本
             strncpy(filepath,possible_paths[i],path_size);
         }
         filepath[path_size - 1] = '\0'; // 确保字符串终止
@@ -36,7 +40,7 @@ int hex_search(const char *filename, char *filepath,size_t path_size){
     return 0;
     
 }
-
+// ==================================== 文件格式检查 ============================================
 int hex_format_check(const char *filepath){
     FILE *f = fopen(filepath,"r");
     char line[512] = {0};
@@ -59,7 +63,7 @@ int hex_format_check(const char *filepath){
         line_count++;
         clean_format(line);
         uint32_t addr;
-        uint32_t instructions[8];
+        uint32_t instructions[8];   // 格式检查时清理
         int count;
 
         if (objdump_check(line, &addr,instructions,&count))
@@ -92,25 +96,29 @@ int hex_format_check(const char *filepath){
     return 0;
 }
 
+// ================================ 去掉每行换行符，注释符，去掉首尾空白符 ===================================
 void clean_format(char *line){
     if (line == NULL) return;
+    // strcspn 返回字符串中第一个匹配到指定字符的下标
     line[strcspn(line,"\r")] = 0;
     line[strcspn(line,"\n")] = 0;
+    // 去掉#后的注释，利用'\0'截断
     char *comment = strchr(line,'#');
     if (comment!=NULL)
     {
         *comment = 0;
     }
+    // 去掉前导空白符
     char *start = line;
     while(isspace((unsigned char)*start)) start++;
     if (start!=line){
         memmove(line,start,strlen(start)+1);
     }
-
-    char *end = line+sizeof(line)-1;
+    // 去掉尾部空白符
+    char *end = line+strlen(line)-1;
     if (end == NULL) return;
     while(isspace((unsigned char)*end)) {
-        *(end+1) = '\0';
+        *end= '\0';
         end--;
     }
 }

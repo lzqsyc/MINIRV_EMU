@@ -1,11 +1,13 @@
 #include "../head/head.h"
-
+// 输入缓冲区清理
 void clear_input_buffer() {
     int c;
     while ((c = getchar()) != '\n' && c !=EOF);
 }
 
-void hex_load(CPU_state *cpu){
+// 指令文件加载函数
+void file_load(CPU_state *cpu,int *is_ok){
+    
     char filename [256]={0};
     printf("\n ===Hex文件加载模式 ===\n");
     printf("支持的文件格式：\n");
@@ -25,14 +27,15 @@ void hex_load(CPU_state *cpu){
     if (strcmp(filename,"q") ==0 || strcmp(filename,"Q") == 0)
     {
         printf("返回主菜单\n");
-        return;
+        return ;
     }
-    cpu_init(cpu);
-
-    int result = hex_execute(cpu,filename);
+    
+//======================== 文件查找格式验证成功进入代码执行模式选择 ==================================
+    int result = file_search(cpu,filename);
     if (result >=0 )
     {
         printf("文件加载成功！\n");
+        *is_ok = 1;
         int execute_mode = 0;
         do
         {
@@ -66,20 +69,20 @@ void hex_load(CPU_state *cpu){
             }
         } while (execute_mode !=3);
     }
+// ***************************** 文件查询或者格式验证失败，递归重新输入加载验证 ************************
     else{
         printf("文件加载失败！请检查文件格式或名称\n");
         char retry[5] = {0};
         printf("\n是否重新加载文件(yes/任意字符退出)?\n");
         if (scanf("%s",retry) == 1 && strcmp(retry,"yes") == 0)
         {
-            void clear_input_buffer();
-            hex_load(cpu);                                            // 递归调用加载程序
+            clear_input_buffer();
+            file_load(cpu,is_ok);                                            // 递归调用加载程序
         }
         else{
-            void clear_input_buffer();
-            printf("返回主菜单！\n");
+            clear_input_buffer();
+            printf("\n返回主菜单！\n");
         }
         
     } 
-
 }

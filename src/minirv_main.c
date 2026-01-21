@@ -10,9 +10,8 @@ int main(){
         printf("2. hex文件加载模式\n"); 
         printf("3. 退出模拟器！\n"); 
         printf("请输入您的模式选择：");
-
-        if (scanf("%d",&mode) !=1)
-        {
+        // 捕捉用户输入非数字防止死循环设定
+        if (scanf("%d",&mode) !=1){
             printf("输入错误！");
             clear_input_buffer();
             continue;   // 重复循环语句，回到循环开始并非终止
@@ -24,9 +23,11 @@ int main(){
                 inst_test(&cpu);
                 break;
             case 2:
-                cpu_init(&cpu);
-                hex_load(&cpu);
-                cpu_free(&cpu);
+                int is_ok = 0;
+                file_load(&cpu,&is_ok);
+                if (is_ok == 1){
+                    cpu_free(&cpu);
+                } 
                 break;
             case 3:
                 printf("退出模拟器\n");
@@ -41,3 +42,4 @@ int main(){
     return 0;
 
 }
+

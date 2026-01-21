@@ -13,7 +13,7 @@ uint32_t mem_read(CPU_state *cpu,uint32_t addr){
         return *(uint32_t*)(cpu->memory+addr);      //自动从addr开始连续读取4个字节转化为32位输出
     }
 }
-// 32位写入
+// 32位写入：1、地址对齐；2、地址不能越界
 void mem_write(CPU_state *cpu,uint32_t addr, uint32_t value){
     if ( addr % 4 != 0)
     {
@@ -23,6 +23,7 @@ void mem_write(CPU_state *cpu,uint32_t addr, uint32_t value){
         printf("字内存写入地址越界！pc=0x%08x\n",addr);
         return;
     }
+    // 强制转化memory字节指针为32位字指针并解引用，用于当前地址值的写入
     *(uint32_t*)(cpu->memory+addr) = value;
 }
 // 字节读取

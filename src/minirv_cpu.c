@@ -1,5 +1,5 @@
 #include "../head/head.h"
-
+// cpu状态初始化
 void cpu_init(CPU_state *cpu){
     cpu->mem_size = MEM_SIZE;
     cpu->memory = (uint8_t*)malloc(cpu->mem_size); //  将内存大小转化为字节数组，并且由字节指针寻址
@@ -15,6 +15,7 @@ void cpu_init(CPU_state *cpu){
     cpu->cpu_running = 0;
 }
 
+// cpu堆上的动态内存释放
 void cpu_free(CPU_state*cpu){
     if (cpu->memory != NULL)
     {
@@ -26,6 +27,7 @@ void cpu_free(CPU_state*cpu){
     }
 } 
 
+// 取值，译码，执行，访存，写回
 int cpu_core(CPU_state *cpu){
     // fetch
     if (cpu->cpu_running == 0)

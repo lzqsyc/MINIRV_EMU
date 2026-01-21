@@ -1,0 +1,66 @@
+flowchart TB
+    %% 核心流程控制
+    Start([开始: 输入文件名/file_load]) --> SearchCheck
+    
+    subgraph SearchScope [文件查找模块 / file_check.c]
+        direction TB
+        SearchCheck{遍历预设路径}
+        PathList["搜索路径列表:
+(1) 当前路径
+(2) load/
+(3) other/
+(4) ../hex/
+(5) test/
+(6) ../test/"]
+        
+        SearchCheck --> |依次尝试打开| PathList
+        PathList --> |fopen != NULL| Found[找到文件]
+        PathList --> |全部失败| NotFound[搜索失败]
+    end
+    
+    NotFound --> Retry{是否重试?} -- 是(递归) --> Start
+    Retry -- 否 --> End([返回主菜单])
+    
+    subgraph FormatCheck [格式识别与加载 / file_search.c]
+        Found --> CheckLoop[读取文件首部/行扫描]
+        CheckLoop --> |clean_format| Clean[清洗格式]
+        Clean --> Judge{格式判定}
+        
+        Judge --> |objdump_check| FormatObj[Objdump格式]
+        Judge --> |simple_check| FormatSimple[Simple32位格式]
+        Judge --> |不匹配| Unknown[未知格式/解析失败]
+        
+        FormatObj --> LoadObj[执行 load_objdump]
+        FormatSimple --> LoadSimple[执行 load_simple]
+        
+        LoadObj --> Stats[统计: 指令数/行数/错误数]
+        LoadSimple --> Stats
+    end
+    
+    subgraph Execute [执行交互逻辑 / file_load.c]
+        Stats --> SuccessCheck{错误数 == 0 ?}
+        SuccessCheck -- 是 --> Init[CPU初始化 / cpu_init]
+        SuccessCheck -- 否 --> ShowErr[显示错误行] --> Retry
+        
+        Init --> ModeSelect{选择执行模式}
+        ModeSelect --> |1| Debug[调试模式 / debug_mode]
+        ModeSelect --> |2| Run[连续运行 / run_mode]
+        ModeSelect --> |3| ExitMode[退出加载模式]
+        
+        Debug --> ModeSelect
+        Run --> ModeSelect
+    end
+    
+    Unknown --> Retry
+    ExitMode --> End
+    
+    %%%% 样式定义
+    classDef process fill:#BBDEFB,stroke:#1565C0,stroke-width:2px,color:#000000;
+    classDef decision fill:#FFF9C4,stroke:#FBC02D,stroke-width:2px,stroke-dasharray: 5 5,color:#000000;
+    classDef error fill:#FFCDD2,stroke:#C62828,stroke-width:2px,color:#000000;
+    classDef io fill:#E1BEE7,stroke:#7B1FA2,stroke-width:2px,color:#000000;
+
+    class Start,End,PathList io;
+    class SearchCheck,Judge,SuccessCheck,ModeSelect,Retry decision;
+    class Found,CheckLoop,Clean,LoadObj,LoadSimple,Stats,Init,Debug,Run process;
+    class NotFound,Unknown,ShowErr error;

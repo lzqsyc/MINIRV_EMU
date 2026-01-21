@@ -1,6 +1,6 @@
 #include "../head/head.h"
-
-int hex_execute(CPU_state *cpu, char *filename){
+//==================== 文件查找成功并且验证格式通过返回1，否则返回失败-1 ====================================
+int file_search(CPU_state *cpu, char *filename){
 
 /*******************文件路径查询并检查是否能打开*******************/
     if (filename == NULL || strlen(filename) == 0)
@@ -15,7 +15,7 @@ int hex_execute(CPU_state *cpu, char *filename){
         return -1;
     }
     printf("找到文件：%s\n",filepath);
-
+    cpu_init(cpu);
 /******************文件hex格式查询：objdump/simple,并加载***************************/
     int file_format=hex_format_check(filepath);
     int line_count = 0;

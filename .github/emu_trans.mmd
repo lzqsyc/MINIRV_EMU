@@ -1,0 +1,155 @@
+graph TD
+    %% --- 定义高对比度样式 ---
+    %% 文件/模块：淡蓝底，深蓝字
+    classDef file fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1;
+    %% 数据结构：淡黄底，深棕字（圆柱体）
+    classDef struct fill:#fffde7,stroke:#f9a825,stroke-width:2px,color:#1b5e20;
+    %% 普通函数：白底，黑字，细边框
+    classDef function fill:#ffffff,stroke:#333333,stroke-width:1px,color:#000000;
+    %% 核心控制流：淡红底，深红字，加粗
+    classDef core fill:#ffebee,stroke:#c62828,stroke-width:3px,color:#b71c1c,font-weight:bold;
+
+    %% --- 核心数据结构 (head.h) ---
+    subgraph "核心数据结构 (head.h)"
+        direction TB
+        CPU_state[("CPU_state struct<br>PC, GPR[32], Memory*, Flags")]:::struct
+        DecodeInst[("DecodeInst struct<br>Opcode, rd, rs1, funct3, imm")]:::struct
+    end
+
+    %% --- 主程序入口 ---
+    subgraph "交互层 (minirv_main.c)"
+        MainFunc(main):::core
+        Menu{模式选择}
+    end
+
+    %% --- 详细交互逻辑 ---
+    subgraph "测试模式流程 (test/inst_test.c)"
+        direction TB
+        TestMenu{测试菜单}
+        TestOpt1(1.单步调试):::function
+        TestOpt2(2.连续运行):::function
+        TestOpt3(3.验证结果):::function
+        TestOpt4(4.查看寄存器):::function
+        TestOpt5(5.显示帮助):::function
+    end
+
+    subgraph "Hex模式流程 (load/hex_load.c)"
+        direction TB
+        HexInput[/输入文件名/]:::function
+        HexMenu{执行菜单}
+        HexOpt1(1.单步调试):::function
+        HexOpt2(2.连续运行):::function
+    end
+
+    %% --- 模拟器核心循环 ---
+    subgraph "核心层 (minirv_cpu.c)"
+
+        Init(cpu_init):::function
+        CoreLoop(cpu_core Loop):::core
+        Fetch(取指 Fetch):::function
+    end
+
+    %% --- 逻辑处理 ---
+    subgraph "逻辑层"
+        DecodeFunc(decode_inst<br>minirv_decode.c):::function
+        ExecuteFunc(inst_execute<br>minirv_execute.c):::function
+        
+        subgraph "具体指令实现 (按Opcode分类)"
+            Inst_LOAD(OP_LOAD<br>lw / lbu)
+            Inst_STORE(OP_STORE<br>sw / sb)
+            Inst_ADDI(OP_ADDI<br>addi)
+            Inst_ADD(OP_ADD<br>add)
+            Inst_LUI(OP_LUI<br>lui)
+            Inst_JALR(OP_JALR<br>jalr)
+            Inst_EBREAK(OP_EBREAK<br>ebreak)
+        end
+    end
+
+    %% --- 存储层 ---
+    subgraph "存储层 (minirv_mem.c / gpr.c)"
+        MemRead(mem_read):::function
+        MemWrite(mem_write):::function
+        GPRRead(gpr_read):::function
+        GPRWrite(gpr_write):::function
+    end
+
+    %% --- 关系连接 ---
+    
+    %% 启动流程
+    MainFunc --> Init
+    Init -->|分配内存| CPU_state
+    MainFunc --> Menu
+    
+    %% 模式选择分支
+    Menu -- "1" --> TestMenu
+    TestMenu -- "1" --> TestOpt1
+    TestMenu -- "2" --> TestOpt2
+    TestMenu -- "3" --> TestOpt3
+    TestMenu -- "4" --> TestOpt4
+    TestMenu -- "5" --> TestOpt5
+    
+    Menu -- "2" --> HexInput
+    HexInput --> HexMenu
+    HexMenu -- "1" --> HexOpt1
+    HexMenu -- "2" --> HexOpt2
+
+    %% 核心执行连接
+    TestOpt1 & TestOpt2 --> CoreLoop
+    HexOpt1 & HexOpt2 --> CoreLoop
+    TestOpt3 -->|Check| GPRRead
+    TestOpt4 -->|Dump| GPRRead
+    
+    %% CPU 循环流程 (Fetch-Decode-Execute)
+    CoreLoop -->|步骤1: 获取PC| CPU_state
+    CoreLoop -->|步骤2: 调用| Fetch
+    Fetch -->|读取指令| MemRead
+    
+    CoreLoop -->|步骤3: 机器码| DecodeFunc
+    DecodeFunc -->|生成| DecodeInst
+    
+    CoreLoop -->|步骤4: 分发| ExecuteFunc
+    ExecuteFunc -->|读取上下文| CPU_state
+    ExecuteFunc -->|读取指令包| DecodeInst
+    
+    %% 执行细节
+    ExecuteFunc -- "LOAD (0x03)" --> Inst_LOAD
+    ExecuteFunc -- "STORE (0x23)" --> Inst_STORE
+    ExecuteFunc -- "ADDI (0x13)" --> Inst_ADDI
+    ExecuteFunc -- "ADD (0x33)" --> Inst_ADD
+    ExecuteFunc -- "LUI (0x37)" --> Inst_LUI
+    ExecuteFunc -- "JALR (0x67)" --> Inst_JALR
+    ExecuteFunc -- "EBREAK (0x73)" --> Inst_EBREAK
+    
+    %% 存储交互
+    Inst_LOAD & Inst_STORE & Inst_ADDI & Inst_ADD & Inst_JALR -->|读寄存器| GPRRead
+    Inst_LOAD -->|读内存| MemRead
+    Inst_STORE -->|写内存| MemWrite
+    Inst_LOAD & Inst_ADDI & Inst_ADD & Inst_LUI & Inst_JALR -->|写回寄存器| GPRWrite
+    
+    %% 存储层到底层数据
+    MemRead & MemWrite -.->|Access| CPU_state
+    GPRRead & GPRWrite -.->|Access| CPU_state
+
+    %% --- 定义线条样式 (放在最后以确保索引有效) ---
+    %% 启动/初始化链接
+    linkStyle 0,1,2 stroke:#9e9e9e,stroke-width:2px,stroke-dasharray: 5 5;
+    %% 菜单交互
+    linkStyle 3,4,5,6,7,8,9,10,11,12 stroke:#2196f3,stroke-width:2px;
+    %% 状态/核心循环
+    linkStyle 13,14,15,16,19,20,21,22,23,24 stroke:#f44336,stroke-width:3px;
+    %% 执行分发/数据流
+    linkStyle 27,28,29,30,31,32,33 stroke:#4caf50,stroke-width:2px;
+    %% 访存/寄存器操作 (需重新计算索引，此处从34开始大致覆盖后续操作)
+    linkStyle 34,35,36,37,38,39,40,41,42,43,44,45 stroke:#9c27b0,stroke-width:2px;
+
+    %% --- 定义线条样式 (放在最后以确保索引有效) ---
+    %% 启动/初始化链接
+    linkStyle 0,1,2 stroke:#9e9e9e,stroke-width:2px,stroke-dasharray: 5 5;
+    %% 菜单交互
+    linkStyle 3,4,5,6,7,8,9,10,11,12 stroke:#2196f3,stroke-width:2px;
+    %% 状态/核心循环
+    linkStyle 13,14,15,16,19,20,21,22,23,24 stroke:#f44336,stroke-width:3px;
+    %% 执行分发/数据流
+    linkStyle 27,28,29,30,31,32,33 stroke:#4caf50,stroke-width:2px;
+    %% 访存/寄存器操作 (需重新计算索引，此处从34开始大致覆盖后续操作)
+    linkStyle 34,35,36,37,38,39,40,41,42,43,44,45 stroke:#9c27b0,stroke-width:2px;

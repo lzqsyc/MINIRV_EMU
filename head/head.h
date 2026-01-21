@@ -5,7 +5,8 @@
 #include<string.h>
 #include<stdint.h>
 #include<stdlib.h>
-#include <ctype.h>
+#include<ctype.h>
+#include<stdbool.h>
 
 #define MEM_SIZE (512*1024)
 #define LOAD_START 0x00000000
@@ -92,11 +93,11 @@ int parse_objdump_line(const char *line, uint32_t *address, uint32_t instruction
 int parse_simple_hex_line(const char *line, uint32_t *instruction);
 void clean_line(char *line) ;
 int load_hex_file(CPU_state *cpu, const char *filename);
-void hex_load(CPU_state *cpu);
-// hex_load-2
+void file_load(CPU_state *cpu);
+// file_load-2
 */ 
 void clear_input_buffer();
-void hex_load(CPU_state *cpu);
+void file_load(CPU_state *cpu,int *is_ok);
 int hex_search(const char *filename, char *filepath,size_t path_size);
 int hex_format_check(const char *filepath);
 void clean_format(char *line);
@@ -104,6 +105,6 @@ int objdump_check(const char *line, uint32_t *addr, uint32_t instructions[8],int
 void load_objdump(const char *filepath,CPU_state *cpu,int *line_count,int *inst_count,int *error_count);
 int simple_check(const char *line,uint32_t *instructions);
 void load_simple(const char *line, CPU_state *cpu,int *line_count,int *inst_count,int *error_count);
-int hex_execute(CPU_state *cpu, char *filename);
+int file_search(CPU_state *cpu, char *filename);
 
 #endif
